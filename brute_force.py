@@ -63,12 +63,12 @@ def readFile(fileName):
 
 def main():
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('--url',
+    parser.add_argument('--url', '-u',
                          action='store',
                          required=True,
                          help='bruteforce url')
     passwords_group = parser.add_mutually_exclusive_group(required=True)
-    passwords_group.add_argument('--password', '-p',
+    passwords_group.add_argument('--password', '  ',
                                  action='store',
                                  help='single password')
     passwords_group.add_argument('--password-file', '-pf',
@@ -82,10 +82,10 @@ def main():
                            action='store',
                            help='path to ids file')
     identifier_group = parser.add_mutually_exclusive_group(required=True)
-    identifier_group.add_argument('--is-present',
+    identifier_group.add_argument('--is-present', '-ip',
                                  action='store',
                                  help='if present in response terminates the bruteforce')
-    identifier_group.add_argument('--is-not-present',
+    identifier_group.add_argument('--is-not-present', '-inp',
                                  action='store',
                                  help='value if not present in response terminates the bruteforce')
     options = parser.parse_args()
