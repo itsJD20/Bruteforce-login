@@ -1,0 +1,10 @@
+{
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml",
+    "Cookie": "session=xAxPv4Zwe9rMb9wCLsbOqXI3CVvPzPu5",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "X-Originating-IP": "127.0.0.1",
+    "X-Forwarded-For": "127.0.0.1",
+    "X-Remote-IP": "127.0.0.1",
+    "X-Remote-Addr": "127.0.0.1"
+}

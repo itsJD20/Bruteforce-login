@@ -12,7 +12,8 @@ Installation and Usage
 
 | Parameter           | Shorts | Required         | Description                                     |
 |---------------------|--------|------------------|-------------------------------------------------|
-|  --url              |   -u   |   True           | bruteforce url                                  |
+|  --url              |   -u   |      True        | bruteforce url                                  |
+|  --headers-file     |   -hf  |      True        | The file consisting of all the required headers |
 |---------------------|--------|------------------|-------------------------------------------------|
 |  --password         |   -p   | One of -p or -pf | single password                                 |
 |  --password-file    |   -pf  | is required      | path to passwords file                          |
@@ -25,7 +26,7 @@ Installation and Usage
 
 ### Example:
 ```
-python3 brute_force.py -u https://.... -pf pass.txt -i adam -inp Invalid
+python3 brute_force.py -u https://.... -hf headers.txt -pf pass.txt -i adam -inp Invalid
 ``` 
 
 Future Improvements:
